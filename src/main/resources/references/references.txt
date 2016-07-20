@@ -1,0 +1,2 @@
+Exposed Domain Model Pattern
+http://www.expojo.com/exposedDomainModel.htm
