@@ -33,6 +33,7 @@ public class Transaction {
     
     @Enumerated(EnumType.STRING)
     @Column(name = "TYPE", updatable = false, columnDefinition = "VARCHAR(200)")
+    @JsonIgnore
     private PaymentType type;
     
     @Column(name = "AUTHORIZATON_CODE", updatable = false, nullable=false, columnDefinition = "VARCHAR(200)")
@@ -49,6 +50,7 @@ public class Transaction {
     
     @ManyToOne(optional = true)
     @JoinColumn(name = "ORDER_ID", referencedColumnName = "ORDER_ID", nullable = false, columnDefinition = "INT")
+    @JsonIgnore
     private Order order;
 
     public String getExternalId() {

@@ -1,0 +1,23 @@
+// Creating an order
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order -d "{\"number\": \"123\", \"reference\": \"1\", \"notes\": \"bla bla\", \"item\" : [{\"sku\": \"123\", \"unitPrice\": \"123\", \"quantity\" : \"1\"}]}"
+curl -i -X GET http://localhost:8090/v1/service/order/123
+
+// Adding an item to an order
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order/123/item -d "{\"sku\": \"sku\", \"quantity\": \"1\", \"unitPrice\": \"1000\"}"
+
+
+
+
+
+
+
+// Create order and add itens
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order -d "{\"number\": \"123\", \"reference\": \"1\", \"notes\": \"bla bla\", \"item\" : [{\"sku\": \"123\", \"unitPrice\": \"123\", \"quantity\" : \"1\"}]}"
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order/123/item -d "{\"sku\": \"prdct1\", \"quantity\": \"2\", \"unitPrice\": \"1000\"}"
+
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order/123/item -d "{\"sku\": \"prdct1\", \"quantity\": \"1\", \"unitPrice\": \"1000\"}"
+curl -i -H "Content-Type: application/json" -X POST http://localhost:8090/v1/service/order/123/item -d "{\"sku\": \"prdct2\", \"quantity\": \"10\", \"unitPrice\": \"1000\"}"
+
+curl -i -X GET http://localhost:8090/v1/service/order/123
+
+curl -i -X DELETE http://localhost:8090/v1/service/order/123/item/prdct1/quantity/1

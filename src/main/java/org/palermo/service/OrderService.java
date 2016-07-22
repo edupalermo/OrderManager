@@ -35,18 +35,20 @@ public class OrderService {
         if (item != null) {
             int actualQuantity = item.getQuantity();
             if (quantity >= actualQuantity) {
-                itemRepository.delete(item);
+                // itemRepository.delete(item);
+                order.getItems().remove(item);
                 itemsUpdated = true;
             }
             else {
                 item.setQuantity(actualQuantity - quantity);
-                itemRepository.save(item);
+                // itemRepository.save(item);
                 itemsUpdated = true;
             }
         }
         
         if (itemsUpdated) {
             updateOrderPrice(order);
+            orderRepository.save(order);
         }
         
     }
@@ -59,7 +61,31 @@ public class OrderService {
         }
         order.setPrice(total);
         
-        orderRepository.save(order);
     }
 
+    @Transactional
+    public void addItem(Order order, Item item) {
+        
+        boolean found = false;
+        
+        for (Item persistedItem : order.getItems()) {
+            if (persistedItem.getSku().equals(item.getSku())) {
+                
+                persistedItem.addQuantity(item.getQuantity());
+                itemRepository.save(persistedItem);
+                
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            item.setOrder(order);
+            itemRepository.save(item);
+            
+            updateOrderPrice(order);
+            orderRepository.save(order);
+        }
+    }
+    
 }

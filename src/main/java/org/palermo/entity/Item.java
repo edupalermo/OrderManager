@@ -8,11 +8,12 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "ITEM")
+@Table(name = "ITEM", uniqueConstraints={@UniqueConstraint(columnNames = {"ORDER_ID", "SKU"})})
 public class Item {
     
     @Id
@@ -31,8 +32,14 @@ public class Item {
     private int quantity;
     
     @ManyToOne(optional = true)
-    @JoinColumn(name = "ORDER_ID", referencedColumnName = "ORDER_ID", nullable = false, columnDefinition = "INT")
+    @JoinColumn(name = "ORDER_ID", referencedColumnName = "ORDER_ID", updatable=false, nullable = false, columnDefinition = "INT")
+    @JsonIgnore
     private Order order;
+    
+    
+    public void addQuantity(int quantity) {
+        this.quantity += quantity;
+    }
 
     public String getSku() {
         return sku;

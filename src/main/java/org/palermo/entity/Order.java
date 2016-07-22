@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -16,7 +17,6 @@ import javax.persistence.Table;
 
 import org.palermo.entity.enums.OrderStatus;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
@@ -48,7 +48,7 @@ public class Order {
     //@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
     private Timestamp updated;
     
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items;
     
     @Column(name = "NOTES", columnDefinition = "VARCHAR(200)")

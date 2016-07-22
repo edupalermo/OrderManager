@@ -32,8 +32,10 @@ public class ItemResource {
             responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
         }
         else {
-            item.setOrder(order);
-            itemService.save(item);
+            orderService.addItem(order, item);
+//            item.setOrder(order);
+//            itemService.save(item);
+            responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
         }
         
         return responseEntity;
