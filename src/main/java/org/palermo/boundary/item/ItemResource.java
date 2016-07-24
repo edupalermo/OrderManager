@@ -33,16 +33,14 @@ public class ItemResource {
         }
         else {
             orderService.addItem(order, item);
-//            item.setOrder(order);
-//            itemService.save(item);
             responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
         }
         
         return responseEntity;
     }
     
-    @RequestMapping(method = RequestMethod.DELETE, value = "/{sku}/quantity/{quantity}")
-    public ResponseEntity<Void> delete(@PathVariable("orderNumber") String orderNumber, @PathVariable("sku") String sku, @PathVariable("quantity") int quantity) {
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{sku}/unitPrice/{unitPrice}/quantity/{quantity}")
+    public ResponseEntity<Void> delete(@PathVariable("orderNumber") String orderNumber, @PathVariable("sku") String sku, @PathVariable("unitPrice") int unitPrice, @PathVariable("quantity") int quantity) {
         
         ResponseEntity<Void> responseEntity = null;
         
@@ -52,7 +50,7 @@ public class ItemResource {
             responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
         }
         else {
-            orderService.removeItem(order, sku, quantity);
+            orderService.removeItem(order, sku, unitPrice, quantity);
         }
         
         return responseEntity;

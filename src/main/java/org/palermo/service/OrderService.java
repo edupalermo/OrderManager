@@ -4,6 +4,7 @@ import javax.transaction.Transactional;
 
 import org.palermo.entity.Item;
 import org.palermo.entity.Order;
+import org.palermo.entity.enums.OrderStatus;
 import org.palermo.repository.ItemRepository;
 import org.palermo.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ public class OrderService {
     
     @Transactional
     public void save(Order order) {
+        order.setStatus(OrderStatus.DRAFT);
         orderRepository.save(order);
     }
 
@@ -26,17 +28,29 @@ public class OrderService {
     }
 
     @Transactional
-    public void removeItem(Order order, String sku, int quantity) {
+    public Order removeItem(final Order order, String sku, int unitPrice, int quantity) {
         
-        Item item = itemRepository.findByOrderAndSku(order, sku);
+        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
         
-        boolean itemsUpdated = false;
+        boolean found = false;
+        
+        for (Item persistedItem : order.getItems()) {
+            if ((persistedItem.getSku().equals(sku)) && (persistedItem.getUnitPrice() == unitPrice)) {
+                
+                
+                found = true;
+                break;
+            }
+        }
+
+        
+        
         
         if (item != null) {
             int actualQuantity = item.getQuantity();
             if (quantity >= actualQuantity) {
                 // itemRepository.delete(item);
-                order.getItems().remove(item);
+                lockedOrder.getItems().remove(item);
                 itemsUpdated = true;
             }
             else {
@@ -47,10 +61,11 @@ public class OrderService {
         }
         
         if (itemsUpdated) {
-            updateOrderPrice(order);
-            orderRepository.save(order);
+            updateOrderPrice(lockedOrder);
+            lockedOrder = orderRepository.save(lockedOrder);
         }
         
+        return lockedOrder;
     }
     
     private void updateOrderPrice(Order order) {
@@ -64,12 +79,14 @@ public class OrderService {
     }
 
     @Transactional
-    public void addItem(Order order, Item item) {
+    public Order addItem(Order order, Item item) {
+        
+        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
         
         boolean found = false;
         
-        for (Item persistedItem : order.getItems()) {
-            if (persistedItem.getSku().equals(item.getSku())) {
+        for (Item persistedItem : lockedOrder.getItems()) {
+            if ((persistedItem.getSku().equals(item.getSku())) && (persistedItem.getUnitPrice() == item.getUnitPrice())) {
                 
                 persistedItem.addQuantity(item.getQuantity());
                 itemRepository.save(persistedItem);
@@ -80,12 +97,14 @@ public class OrderService {
         }
 
         if (!found) {
-            item.setOrder(order);
+            item.setOrder(lockedOrder);
             itemRepository.save(item);
             
-            updateOrderPrice(order);
-            orderRepository.save(order);
+            updateOrderPrice(lockedOrder);
+            lockedOrder = orderRepository.save(lockedOrder);
         }
+        
+        return lockedOrder;
     }
     
 }
