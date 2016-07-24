@@ -13,7 +13,7 @@ public interface OrderRepository extends CrudRepository<Order, Long> {
     Order findByNumber(String number);
     
     @Query("from Order where number = :number")
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Order lockByNumber(@Param("number") String number);
     
 }

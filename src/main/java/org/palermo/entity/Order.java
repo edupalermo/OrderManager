@@ -2,6 +2,7 @@ package org.palermo.entity;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -26,7 +27,7 @@ public class Order {
     
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    @Column(name = "ORDER_ID", updatable = false, nullable = false, columnDefinition = "INT")
+    @Column(name = "ORDER_ID", insertable = false, updatable = false, nullable = false, columnDefinition = "INT")
     @JsonIgnore
     private long id;
     
@@ -49,13 +50,13 @@ public class Order {
     private Timestamp updated;
     
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Item> items;
+    private List<Item> items = new ArrayList<Item>();
     
     @Column(name = "NOTES", columnDefinition = "VARCHAR(200)")
     private String notes;
     
     @OneToMany(mappedBy = "order")
-    private List<Transaction> trasactions;
+    private List<Transaction> trasactions = new ArrayList<Transaction>();;
     
     @Column(name = "PRICE", columnDefinition = "INT")
     private Integer price;
