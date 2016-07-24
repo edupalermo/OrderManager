@@ -11,9 +11,12 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "ITEM", uniqueConstraints={@UniqueConstraint(columnNames = {"ORDER_ID", "SKU", "UNIT_PRICE"})})
+@JsonInclude(Include.NON_NULL)
 public class Item {
     
     @Id

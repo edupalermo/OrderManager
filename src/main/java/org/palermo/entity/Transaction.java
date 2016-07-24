@@ -14,9 +14,12 @@ import javax.persistence.Table;
 import org.palermo.entity.enums.PaymentType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "TRANSACTION")
+@JsonInclude(Include.NON_NULL)
 public class Transaction {
     
     @Id
@@ -34,7 +37,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @Column(name = "TYPE", updatable = false, columnDefinition = "VARCHAR(200)")
     @JsonIgnore
-    private PaymentType type;
+    private PaymentType paymentType;
     
     @Column(name = "AUTHORIZATON_CODE", updatable = false, nullable=false, columnDefinition = "VARCHAR(200)")
     private String authorizationCode;
@@ -69,12 +72,12 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public PaymentType getType() {
-        return type;
+    public PaymentType getPaymentType() {
+        return paymentType;
     }
 
-    public void setType(PaymentType type) {
-        this.type = type;
+    public void setPaymentType(PaymentType paymentType) {
+        this.paymentType = paymentType;
     }
 
     public String getAuthorizationCode() {
@@ -123,7 +126,7 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction [id=" + id + ", externalId=" + externalId + ", amount=" + amount + ", type=" + type + ", authorizationCode=" + authorizationCode + ", cardBrand=" + cardBrand + ", cardBin=" + cardBin + ", cardLast=" + cardLast + "]";
+        return "Transaction [id=" + id + ", externalId=" + externalId + ", amount=" + amount + ", type=" + paymentType + ", authorizationCode=" + authorizationCode + ", cardBrand=" + cardBrand + ", cardBin=" + cardBin + ", cardLast=" + cardLast + "]";
     }
 
 }

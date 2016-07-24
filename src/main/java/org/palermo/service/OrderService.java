@@ -1,5 +1,6 @@
 package org.palermo.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.persistence.EntityNotFoundException;
@@ -8,10 +9,13 @@ import javax.validation.constraints.NotNull;
 
 import org.palermo.entity.Item;
 import org.palermo.entity.Order;
+import org.palermo.entity.Transaction;
 import org.palermo.entity.enums.OrderStatus;
+import org.palermo.entity.enums.PaymentType;
 import org.palermo.exception.DuplicatedEntityException;
 import org.palermo.repository.ItemRepository;
 import org.palermo.repository.OrderRepository;
+import org.palermo.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +29,9 @@ public class OrderService {
 
     @Autowired
     ItemRepository itemRepository;
+
+    @Autowired
+    TransactionRepository transactionRepository;
 
     @Transactional
     public Order create(@NotNull(message = "A null order cannot be saved") Order order) throws DuplicatedEntityException {
@@ -84,6 +91,13 @@ public class OrderService {
         for (Item item : order.getItems()) {
             total += item.getUnitPrice();
         }
+        
+        for (Transaction transaction: order.getTrasactions()) {
+            if (transaction.getPaymentType() == PaymentType.PAYMENT) {
+                total -= transaction.getAmount();
+            }
+            
+        }
         order.setPrice(total);
 
     }
@@ -112,9 +126,41 @@ public class OrderService {
         }
 
         updateOrderPrice(lockedOrder);
-        lockedOrder = orderRepository.save(lockedOrder);
 
+        // If the Order have a price to pay then it mus be Entered
+        if (lockedOrder.getPrice() > 0) {
+            lockedOrder.setStatus(OrderStatus.ENTERED);
+        }
+        
+        order.setUpdated(LocalDateTime.now());
+        
+        lockedOrder = orderRepository.save(lockedOrder);
+        
         return lockedOrder;
     }
+    
+    
+    @Transactional
+    public Order addTransaction(Order order, Transaction transaction) {
+
+        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+
+        transaction.setOrder(lockedOrder);
+        lockedOrder.getTransactions().add(transactionRepository.save(transaction));
+
+        updateOrderPrice(lockedOrder);
+
+        // If the Order have a price to pay then it mus be Entered
+        if (lockedOrder.getPrice() > 0) {
+            lockedOrder.setStatus(OrderStatus.ENTERED);
+        }
+        
+        order.setUpdated(LocalDateTime.now());
+        
+        lockedOrder = orderRepository.save(lockedOrder);
+        
+        return lockedOrder;
+    }
+
 
 }

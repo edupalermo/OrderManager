@@ -19,10 +19,13 @@ import javax.persistence.Table;
 import org.palermo.entity.enums.OrderStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 @Entity
 @Table(name = "ORDERS")
+@JsonInclude(Include.NON_NULL)
 public class Order {
     
     @Id
@@ -56,7 +59,7 @@ public class Order {
     private String notes;
     
     @OneToMany(mappedBy = "order")
-    private List<Transaction> trasactions = new ArrayList<Transaction>();;
+    private List<Transaction> transactions = new ArrayList<Transaction>();;
     
     @Column(name = "PRICE", columnDefinition = "INT")
     private Integer price;
@@ -104,13 +107,13 @@ public class Order {
     public void setNotes(String notes) {
         this.notes = notes;
     }
-
-    public List<Transaction> getTrasactions() {
-        return trasactions;
+    
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 
-    public void setTrasactions(List<Transaction> trasactions) {
-        this.trasactions = trasactions;
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     public Integer getPrice() {
@@ -143,7 +146,7 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order [id=" + id + ", number=" + number + ", reference=" + reference + ", status=" + status + ", created=" + created + ", updated=" + updated + ", items=" + items + ", notes=" + notes + ", trasactions=" + trasactions + ", price=" + price + "]";
+        return "Order [id=" + id + ", number=" + number + ", reference=" + reference + ", status=" + status + ", created=" + created + ", updated=" + updated + ", items=" + items + ", notes=" + notes + ", trasactions=" + transactions + ", price=" + price + "]";
     }
 
 }
