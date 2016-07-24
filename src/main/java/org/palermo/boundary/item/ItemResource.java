@@ -32,7 +32,7 @@ public class ItemResource {
             responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
         }
         else {
-            orderService.addItem(order, item);
+            itemService.add(order, item);
             responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
         }
         
@@ -50,7 +50,7 @@ public class ItemResource {
             responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
         }
         else {
-            orderService.removeItem(order, sku, unitPrice, quantity);
+            itemService.remove(order, sku, unitPrice, quantity);
         }
         
         return responseEntity;

@@ -1,20 +1,94 @@
 package org.palermo.service;
 
+import java.time.LocalDateTime;
+
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
 import org.palermo.entity.Item;
+import org.palermo.entity.Order;
+import org.palermo.entity.enums.OrderStatus;
 import org.palermo.repository.ItemRepository;
+import org.palermo.repository.OrderRepository;
+import org.palermo.service.helper.PriceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ItemService {
     
-    @Autowired ItemRepository itemRepository;
+    @Autowired private ItemRepository itemRepository;
+    
+    @Autowired private OrderRepository orderRepository;
+    
     
     @Transactional
-    public void save(Item item) {
-        itemRepository.save(item);
+    public Order remove(final Order order, String sku, int unitPrice, int quantity) {
+
+        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+
+        boolean found = false;
+
+        for (Item persistedItem : order.getItems()) {
+            if ((persistedItem.getSku().equals(sku)) && (persistedItem.getUnitPrice() == unitPrice)) {
+
+                int actualQuantity = persistedItem.getQuantity();
+                if (quantity >= actualQuantity) {
+                    lockedOrder.getItems().remove(persistedItem);
+                } else {
+                    persistedItem.setQuantity(actualQuantity - quantity);
+                }
+
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new EntityNotFoundException(String.format("It not found item with sku [%s] and unitPrice [%d]!", sku, unitPrice));
+        }
+        
+        PriceHelper.updateOrderPrice(lockedOrder);
+
+        return lockedOrder;
     }
+
+    @Transactional
+    public Order add(Order order, Item item) {
+
+        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+
+        boolean found = false;
+
+        for (Item persistedItem : lockedOrder.getItems()) {
+            if ((persistedItem.getSku().equals(item.getSku())) && (persistedItem.getUnitPrice() == item.getUnitPrice())) {
+
+                persistedItem.addQuantity(item.getQuantity());
+                itemRepository.save(persistedItem);
+
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            item.setOrder(lockedOrder);
+            lockedOrder.getItems().add(itemRepository.save(item));
+        }
+
+        PriceHelper.updateOrderPrice(lockedOrder);
+
+        // If the Order have a price to pay then it mus be Entered
+        if (lockedOrder.getPrice() > 0) {
+            lockedOrder.setStatus(OrderStatus.ENTERED);
+        }
+        
+        order.setUpdated(LocalDateTime.now());
+        
+        lockedOrder = orderRepository.save(lockedOrder);
+        
+        return lockedOrder;
+    }
+
 
 }
