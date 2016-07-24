@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 
 import org.palermo.entity.Item;
 import org.palermo.entity.Order;
+import org.palermo.entity.enums.OrderStatus;
 import org.palermo.exception.DuplicatedEntityException;
 import org.palermo.repository.ItemRepository;
 import org.palermo.repository.OrderRepository;
@@ -26,7 +27,7 @@ public class OrderService {
     ItemRepository itemRepository;
 
     @Transactional
-    public Order save(@NotNull(message = "A null order cannot be saved") Order order) throws DuplicatedEntityException {
+    public Order create(@NotNull(message = "A null order cannot be saved") Order order) throws DuplicatedEntityException {
 
         // The specification says that the number is aa optional field. But if it is null, we will generate a random value
         if (order.getNumber() == null) {
@@ -38,6 +39,8 @@ public class OrderService {
                 throw new DuplicatedEntityException(String.format("Order with number[%s] aleady existis!", order.getNumber()));
             }
         }
+        
+        order.setStatus(OrderStatus.DRAFT);
 
         return orderRepository.save(order);
     }

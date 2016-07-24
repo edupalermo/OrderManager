@@ -25,7 +25,7 @@ public class OrderResource {
         ResponseEntity<?> responseEntity = null;
 
         try {
-            responseEntity = new ResponseEntity<Order>(orderService.save(order), HttpStatus.OK);
+            responseEntity = new ResponseEntity<Order>(orderService.create(order), HttpStatus.OK);
 
         } catch (Exception e) {
             responseEntity = RestExceptionHelper.treatException(e);

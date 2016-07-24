@@ -33,7 +33,7 @@ public class OrderServiceTest {
         order.setNumber(null);
 
         // when
-        Order persistedOrder = orderService.save(order);
+        Order persistedOrder = orderService.create(order);
 
         // then
         assertThat(persistedOrder.getNumber(), is(notNullValue()));
@@ -55,7 +55,7 @@ public class OrderServiceTest {
 
         // when
 
-        Order persistedOrder = orderService.save(order);
+        Order persistedOrder = orderService.create(order);
         persistedOrder = orderService.addItem(persistedOrder, item);
 
         // then
@@ -83,7 +83,7 @@ public class OrderServiceTest {
         item2.setQuantity(1);
 
         // when
-        Order persistedOrder = orderService.save(order);
+        Order persistedOrder = orderService.create(order);
 
         persistedOrder = orderService.addItem(persistedOrder, item1);
         persistedOrder = orderService.addItem(persistedOrder, item2);
@@ -112,7 +112,7 @@ public class OrderServiceTest {
         item2.setQuantity(1);
 
         // when
-        Order persistedOrder = orderService.save(order);
+        Order persistedOrder = orderService.create(order);
 
         persistedOrder = orderService.addItem(persistedOrder, item1);
         persistedOrder = orderService.addItem(persistedOrder, item2);
