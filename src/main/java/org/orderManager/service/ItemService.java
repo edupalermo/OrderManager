@@ -2,15 +2,14 @@ package org.orderManager.service;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
 import org.orderManager.entity.Item;
 import org.orderManager.entity.Order;
-import org.orderManager.entity.enums.OrderStatus;
+import org.orderManager.exception.EntityNotFoundException;
 import org.orderManager.repository.ItemRepository;
 import org.orderManager.repository.OrderRepository;
-import org.orderManager.service.helper.PriceHelper;
+import org.orderManager.service.helper.OrderHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,13 +22,17 @@ public class ItemService {
     
     
     @Transactional
-    public Order remove(final Order order, String sku, int unitPrice, int quantity) {
+    public Order remove(String orderNumber, String sku, int unitPrice, int quantity) throws EntityNotFoundException  {
 
-        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+        Order lockedOrder = orderRepository.lockByNumber(orderNumber);
+        
+        if (lockedOrder == null) {
+        	throw new EntityNotFoundException(String.format("The system was unnable to find Order with number [%s]", orderNumber));
+        }
 
         boolean found = false;
 
-        for (Item persistedItem : order.getItems()) {
+        for (Item persistedItem : lockedOrder.getItems()) {
             if ((persistedItem.getSku().equals(sku)) && (persistedItem.getUnitPrice() == unitPrice)) {
 
                 int actualQuantity = persistedItem.getQuantity();
@@ -45,18 +48,26 @@ public class ItemService {
         }
 
         if (!found) {
-            throw new EntityNotFoundException(String.format("It not found item with sku [%s] and unitPrice [%d]!", sku, unitPrice));
+            throw new EntityNotFoundException(String.format("The system not found item with sku [%s] and unitPrice [%d]!", sku, unitPrice));
         }
         
-        PriceHelper.updateOrderPrice(lockedOrder);
+        OrderHelper.updateOrderPrice(lockedOrder);
+        
+        OrderHelper.treatOrderStatus(lockedOrder);
+        
+        lockedOrder.setUpdated(LocalDateTime.now());
 
         return lockedOrder;
     }
 
     @Transactional
-    public Order add(Order order, Item item) {
+    public Order add(String orderNumber, Item item) throws EntityNotFoundException {
 
-        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+        Order lockedOrder = orderRepository.lockByNumber(orderNumber);
+        
+        if (lockedOrder == null) {
+        	throw new EntityNotFoundException(String.format("The system was unnable to find Order with number [%s]", orderNumber));
+        }
 
         boolean found = false;
 
@@ -76,14 +87,11 @@ public class ItemService {
             lockedOrder.getItems().add(itemRepository.save(item));
         }
 
-        PriceHelper.updateOrderPrice(lockedOrder);
+        OrderHelper.updateOrderPrice(lockedOrder);
 
-        // If the Order have a price to pay then it mus be Entered
-        if (lockedOrder.getPrice() > 0) {
-            lockedOrder.setStatus(OrderStatus.ENTERED);
-        }
+        OrderHelper.treatOrderStatus(lockedOrder);
         
-        order.setUpdated(LocalDateTime.now());
+        lockedOrder.setUpdated(LocalDateTime.now());
         
         lockedOrder = orderRepository.save(lockedOrder);
         

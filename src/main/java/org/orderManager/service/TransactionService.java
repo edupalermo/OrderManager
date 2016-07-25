@@ -2,16 +2,18 @@ package org.orderManager.service;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.EntityNotFoundException;
+
 import javax.transaction.Transactional;
+
 
 import org.orderManager.entity.Order;
 import org.orderManager.entity.Transaction;
-import org.orderManager.entity.enums.OrderStatus;
 import org.orderManager.entity.enums.PaymentType;
+import org.orderManager.exception.DuplicatedEntityException;
+import org.orderManager.exception.EntityNotFoundException;
 import org.orderManager.repository.OrderRepository;
 import org.orderManager.repository.TransactionRepository;
-import org.orderManager.service.helper.PriceHelper;
+import org.orderManager.service.helper.OrderHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,21 +25,29 @@ public class TransactionService {
     @Autowired TransactionRepository transactionRepository;
     
     @Transactional
-    public Order add(Order order, Transaction transaction) {
+    public Order add(String orderNumber, Transaction transaction) throws EntityNotFoundException, DuplicatedEntityException {
 
-        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+        Order lockedOrder = orderRepository.lockByNumber(orderNumber);
+        
+        if (lockedOrder == null) {
+        	throw new EntityNotFoundException(String.format("The system was unnable to find Order with number [%s]", orderNumber));
+        }
+
+        // Check if Transaction (externalId) already exists
+        for (Transaction it : lockedOrder.getTransactions()) {
+        	if (it.getExternalId().equals(transaction.getExternalId())) {
+        		throw new DuplicatedEntityException(String.format("There is a transaction with the same externalId [%s]", transaction.getExternalId()));
+        	}
+        }
 
         transaction.setOrder(lockedOrder);
         lockedOrder.getTransactions().add(transactionRepository.save(transaction));
 
-        PriceHelper.updateOrderPrice(lockedOrder);
-
-        // If the Order have a price to pay then it mus be Entered
-        if (lockedOrder.getPrice() > 0) {
-            lockedOrder.setStatus(OrderStatus.ENTERED);
-        }
+        OrderHelper.updateOrderPrice(lockedOrder);
         
-        order.setUpdated(LocalDateTime.now());
+        OrderHelper.treatOrderStatus(lockedOrder);
+        
+        lockedOrder = orderRepository.save(lockedOrder);
         
         lockedOrder = orderRepository.save(lockedOrder);
         
@@ -46,16 +56,19 @@ public class TransactionService {
 
     
     @Transactional
-    public Order cancel(Order order, Transaction transaction) {
+    public Order cancel(String orderNumber, String externalId) throws EntityNotFoundException {
 
-        Order lockedOrder = orderRepository.lockByNumber(order.getNumber());
+        Order lockedOrder = orderRepository.lockByNumber(orderNumber);
         
+        if (lockedOrder == null) {
+        	throw new EntityNotFoundException(String.format("The system was unnable to find Order with number [%s]", orderNumber));
+        }
         
         boolean found = false;
         
-        for (Transaction persistedTransaction : order.getTransactions()) {
+        for (Transaction persistedTransaction : lockedOrder.getTransactions()) {
             
-            if (persistedTransaction.getExternalId().equals(transaction.getExternalId())) {
+            if (persistedTransaction.getExternalId().equals(externalId)) {
                 persistedTransaction.setPaymentType(PaymentType.CANCEL);
                 transactionRepository.save(persistedTransaction);
                 found = true;
@@ -64,17 +77,14 @@ public class TransactionService {
         }
         
         if (!found) {
-            throw new EntityNotFoundException(String.format("Not found transaction with externalId [%s]!", transaction.getExternalId()));
+            throw new EntityNotFoundException(String.format("Not found transaction with externalId [%s]!", externalId));
         }
         
-        PriceHelper.updateOrderPrice(lockedOrder);
+        OrderHelper.updateOrderPrice(lockedOrder);
 
-        // If the Order have a price to pay then it mus be Entered
-        if (lockedOrder.getPrice() > 0) {
-            lockedOrder.setStatus(OrderStatus.ENTERED);
-        }
+        OrderHelper.treatOrderStatus(lockedOrder);
         
-        order.setUpdated(LocalDateTime.now());
+        lockedOrder.setUpdated(LocalDateTime.now());
         
         lockedOrder = orderRepository.save(lockedOrder);
         

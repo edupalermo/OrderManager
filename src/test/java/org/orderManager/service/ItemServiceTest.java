@@ -40,7 +40,7 @@ public class ItemServiceTest {
         // when
 
         Order persistedOrder = orderService.create(order);
-        persistedOrder = itemService.add(persistedOrder, item);
+        persistedOrder = itemService.add(persistedOrder.getNumber(), item);
 
         // then
 
@@ -69,8 +69,8 @@ public class ItemServiceTest {
         // when
         Order persistedOrder = orderService.create(order);
 
-        persistedOrder = itemService.add(persistedOrder, item1);
-        persistedOrder = itemService.add(persistedOrder, item2);
+        persistedOrder = itemService.add(persistedOrder.getNumber(), item1);
+        persistedOrder = itemService.add(persistedOrder.getNumber(), item2);
 
         // then
         assertThat(persistedOrder.getItems(), hasSize(2));
@@ -98,8 +98,8 @@ public class ItemServiceTest {
         // when
         Order persistedOrder = orderService.create(order);
 
-        persistedOrder = itemService.add(persistedOrder, item1);
-        persistedOrder = itemService.add(persistedOrder, item2);
+        persistedOrder = itemService.add(persistedOrder.getNumber(), item1);
+        persistedOrder = itemService.add(persistedOrder.getNumber(), item2);
 
         // then
         assertThat(persistedOrder.getItems(), hasSize(1));

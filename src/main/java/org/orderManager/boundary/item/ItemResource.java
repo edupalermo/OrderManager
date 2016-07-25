@@ -1,7 +1,7 @@
 package org.orderManager.boundary.item;
 
+import org.orderManager.boundary.helper.RestExceptionHelper;
 import org.orderManager.entity.Item;
-import org.orderManager.entity.Order;
 import org.orderManager.service.ItemService;
 import org.orderManager.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,36 +22,36 @@ public class ItemResource {
     @Autowired ItemService itemService;
     
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Void> create(@PathVariable("orderNumber") String orderNumber, @RequestBody(required=false) Item item) {
+    public ResponseEntity<?> create(@PathVariable("orderNumber") String orderNumber, @RequestBody(required=false) Item item) throws Exception {
         
-        ResponseEntity<Void> responseEntity = null;
+        ResponseEntity<?> responseEntity = null;
         
-        Order order = orderService.findByNumber(orderNumber);
-        
-        if (order == null) {
-            responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
-        }
-        else {
-            itemService.add(order, item);
-            responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
-        }
+        try {
+        	
+			itemService.add(orderNumber, item);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
+			
+		} catch (Exception e) {
+			responseEntity = RestExceptionHelper.treatException(e);
+		}
         
         return responseEntity;
     }
     
     @RequestMapping(method = RequestMethod.DELETE, value = "/{sku}/unitPrice/{unitPrice}/quantity/{quantity}")
-    public ResponseEntity<Void> delete(@PathVariable("orderNumber") String orderNumber, @PathVariable("sku") String sku, @PathVariable("unitPrice") int unitPrice, @PathVariable("quantity") int quantity) {
+    public ResponseEntity<?> delete(@PathVariable("orderNumber") String orderNumber, @PathVariable("sku") String sku, @PathVariable("unitPrice") int unitPrice, @PathVariable("quantity") int quantity) throws Exception {
         
-        ResponseEntity<Void> responseEntity = null;
+        ResponseEntity<?> responseEntity = null;
         
-        Order order = orderService.findByNumber(orderNumber);
+        try {
+        	
+			itemService.remove(orderNumber, sku, unitPrice, quantity);
+			responseEntity = new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+			
+		} catch (Exception e) {
+			responseEntity = RestExceptionHelper.treatException(e);
+		}
         
-        if (order == null) {
-            responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
-        }
-        else {
-            itemService.remove(order, sku, unitPrice, quantity);
-        }
         
         return responseEntity;
     }

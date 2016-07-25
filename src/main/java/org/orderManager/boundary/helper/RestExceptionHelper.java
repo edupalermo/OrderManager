@@ -19,8 +19,7 @@ public class RestExceptionHelper {
 		if (e instanceof DuplicatedEntityException) {
 			logger.error(e.getMessage());
 			responseEntity = new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
-		}
-		if (e instanceof EntityNotFoundException) {
+		} else if (e instanceof EntityNotFoundException) {
 			logger.error(e.getMessage());
 			responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
 		}
