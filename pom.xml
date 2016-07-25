@@ -9,7 +9,7 @@
 	</parent>
 
 	<groupId>org.palermo</groupId>
-	<artifactId>glimpsy</artifactId>
+	<artifactId>ordermanager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 

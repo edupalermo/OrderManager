@@ -1,0 +1,60 @@
+package org.orderManager.boundary.item;
+
+import org.orderManager.entity.Item;
+import org.orderManager.entity.Order;
+import org.orderManager.service.ItemService;
+import org.orderManager.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/v1/service/order/{orderNumber}/item")
+public class ItemResource {
+    
+    @Autowired OrderService orderService;
+    
+    @Autowired ItemService itemService;
+    
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<Void> create(@PathVariable("orderNumber") String orderNumber, @RequestBody(required=false) Item item) {
+        
+        ResponseEntity<Void> responseEntity = null;
+        
+        Order order = orderService.findByNumber(orderNumber);
+        
+        if (order == null) {
+            responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+        }
+        else {
+            itemService.add(order, item);
+            responseEntity = new ResponseEntity<Void>(HttpStatus.CREATED);
+        }
+        
+        return responseEntity;
+    }
+    
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{sku}/unitPrice/{unitPrice}/quantity/{quantity}")
+    public ResponseEntity<Void> delete(@PathVariable("orderNumber") String orderNumber, @PathVariable("sku") String sku, @PathVariable("unitPrice") int unitPrice, @PathVariable("quantity") int quantity) {
+        
+        ResponseEntity<Void> responseEntity = null;
+        
+        Order order = orderService.findByNumber(orderNumber);
+        
+        if (order == null) {
+            responseEntity = new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+        }
+        else {
+            itemService.remove(order, sku, unitPrice, quantity);
+        }
+        
+        return responseEntity;
+    }
+    
+
+}
